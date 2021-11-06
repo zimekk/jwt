@@ -1,9 +1,74 @@
 import path from "path";
 import express, { Router } from "express";
 
-export const router = Router().use("/user", (_req, res) =>
-  res.json(require("@dev/web/src/assets/user.json"))
+// https://dev.to/mr_cea/remaining-stateless-a-more-optimal-approach-e7l
+// userSchema.pre<IUser>("save", function(next) {
+//   if (!this.isModified("password")) { return next(); }
+//   const hash = bcrypt.hashSync(this.password, 10);
+//   this.password = hash;
+//   return next();
+// });
+
+// // method for compare the password
+// userSchema.methods.comparePassword = function(password: string) {
+//   const user = bcrypt.compareSync(password, this.password);
+//   return user ? this : null;
+// };
+
+// export const generateRefreshCookie = (args: any, response: Context) => {
+//   const refreshToken = encode(args, refreshSecret, { expiresIn: "30d" });
+//   const auth = response.cookie("refreshtoken", refreshToken, {
+//       expiresIn: "30d",
+//       httpOnly: true,
+//       secure: false,
+//   });
+//   return auth;
+// };
+
+// if (!user || !bcrypt.compareSync(password, user.passwordHash)) {
+//   throw 'Username or password is incorrect';
+// }
+
+// function randomTokenString() {
+//   return crypto.randomBytes(40).toString('hex');
+// }
+
+// https://github.com/Sid-Shanker/jwt-auth-nodejs
+// https://github.com/bezkoder/jwt-refresh-token-node-js/blob/master/app/routes/auth.routes.js
+const authMiddleware = {
+  verifyToken: (_req, _res, next) => next(),
+};
+
+const authController = {
+  signin: (_req, res) =>
+    res.json({
+      token: 123,
+    }),
+  signup: (_req, res) => res.json(require("@dev/web/src/assets/api/auth.json")),
+  refreshToken: (_req, res) => res.json({ token: 456 }),
+  logout: (_req, res) => res.json({ token: null }),
+  verify: (_req, res) => res.json({ ok: true }),
+};
+
+const authRoutes = Router()
+  .get("/signin", authController.signin)
+  .get("/verify", authController.verify)
+  .get("/refresh-token", authController.refreshToken)
+  .get("/logout", authController.logout);
+
+const userController = {
+  user: (_req, res) => res.json(require("@dev/web/src/assets/api/user.json")),
+};
+
+const userRoutes = Router().get(
+  "/",
+  [authMiddleware.verifyToken],
+  userController.user
 );
+
+export const router = Router()
+  .use("/api/auth", authRoutes)
+  .use("/api/user", userRoutes);
 
 class Server {
   options: Object;

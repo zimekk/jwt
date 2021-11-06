@@ -71,8 +71,8 @@ export default (env, { mode }, dev = mode === "development") => ({
       patterns: [
         {
           context: path.resolve(__dirname, "src/assets"),
-          from: "user.json",
-          to: "[name]",
+          from: "api/**/*.json",
+          to: "[path][name]",
         },
       ],
     }),
